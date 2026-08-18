@@ -1,57 +1,84 @@
 import pandas as pd
+import numpy as np
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import OneHotEncoder
+from sklearn.linear_model import LinearRegression
+from sklearn.metrics import mean_squared_error, r2_score
 
 df = pd.read_csv("cleaned_dataset.csv")
+
+df = df.drop("Switch to order menu", axis=1)
 
 X = df.drop("Aggregate rating", axis=1)
 y = df["Aggregate rating"]
 
-print("Features:")
-print(X.head())
+X_train, X_test, y_train, y_test = train_test_split(
+    X,
+    y,
+    test_size=0.2,
+    random_state=42
+)
 
-print("\nTarget:")
-print(y.head())
+categorical_columns = [
+    "Country Code",
+    "City",
+    "Locality",
+    "Cuisines",
+    "Currency",
+    "Has Table booking",
+    "Has Online delivery",
+    "Is delivering now"
+]
 
-print("\nFeature shape:", X.shape)
-print("Target shape:", y.shape)
+numerical_columns = [
+    "Longitude",
+    "Latitude",
+    "Average Cost for two",
+    "Price range",
+    "Votes"
+]
 
-import pandas as pd
+encoder = OneHotEncoder(
+    handle_unknown="ignore",
+    sparse_output=False
+)
 
-df = pd.read_csv("cleaned_dataset.csv")
+X_train_encoded = encoder.fit_transform(
+    X_train[categorical_columns]
+)
 
-X = df.drop("Aggregate rating", axis=1)
-y = df["Aggregate rating"]
+X_test_encoded = encoder.transform(
+    X_test[categorical_columns]
+)
 
-print("Features:")
-print(X.head())
+X_train_numerical = X_train[numerical_columns].values
+X_test_numerical = X_test[numerical_columns].values
 
-print("\nTarget:")
-print(y.head())
+X_train_final = np.hstack(
+    (X_train_encoded, X_train_numerical)
+)
 
-print("\nFeature shape:", X.shape)
-print("Target shape:", y.shape)
+X_test_final = np.hstack(
+    (X_test_encoded, X_test_numerical)
+)
 
-print("\nCategorical columns:")
+model = LinearRegression()
 
-print("\nCity:")
-print(df["City"].nunique())
+model.fit(X_train_final, y_train)
 
-print("\nLocality:")
-print(df["Locality"].nunique())
+y_pred = model.predict(X_test_final)
 
-print("\nCuisines:")
-print(df["Cuisines"].nunique())
+print("First 10 predictions:")
+print(y_pred[:10])
 
-print("\nCurrency:")
-print(df["Currency"].nunique())
+print("\nFirst 10 actual ratings:")
+print(y_test.values[:10])
 
-print("\nTable booking:")
-print(df["Has Table booking"].unique())
+mse = mean_squared_error(y_test, y_pred)
+rmse = np.sqrt(mse)
+r2 = r2_score(y_test, y_pred)
 
-print("\nOnline delivery:")
-print(df["Has Online delivery"].unique())
-
-print("\nDelivering now:")
-print(df["Is delivering now"].unique())
-
-print("\nSwitch to order menu:")
-print(df["Switch to order menu"].unique())
+print("\nModel Performance:")
+print("Mean Squared Error:", mse)
+print("Root Mean Squared Error:", rmse)
+print("R-squared:", r2)
