@@ -63,8 +63,8 @@ X_test_final = np.hstack(
 )
 
 model = RandomForestRegressor(
-    n_estimators=100,
-    max_depth=10,
+    n_estimators=300,
+    max_depth=15,
     random_state=42,
     n_jobs=-1
 )
@@ -77,7 +77,7 @@ mse = mean_squared_error(y_test, y_pred)
 rmse = np.sqrt(mse)
 r2 = r2_score(y_test, y_pred)
 
-print("Random Forest Performance:")
+print("Final Random Forest Performance:")
 print("Mean Squared Error:", mse)
 print("Root Mean Squared Error:", rmse)
 print("R-squared:", r2)
